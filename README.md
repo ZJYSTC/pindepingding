@@ -1,7 +1,9 @@
+# pindepingding.hithub.io
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>檀雅书院学生品德评定客观评价系统</title>
     <style>
         :root {
             --primary: #1a5276;
@@ -33,7 +35,7 @@
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
-            padding: 12px 20px;
+            padding: 10px 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -41,7 +43,7 @@
         }
         .hamburger-btn {
             width: 38px;
-            height: 38px;
+            height: 20px;
             border-radius: 50%;
             border: 1px solid var(--border);
             background: #fff;
