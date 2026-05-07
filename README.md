@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>檀雅书院学生品德评定系统</title>
+    <title>檀雅书院学生品德评定客观评价系统</title>
     <style>
         :root {
             --primary: #1a5276;
@@ -513,7 +513,7 @@
         <button class="hamburger-btn" onclick="toggleClassMenu()" title="班级目录">
             <span></span><span></span><span></span>
         </button>
-        <div class="title-text">檀雅书院 · <span>品德评定</span></div>
+        <div class="title-text">檀雅书院 · <span>品德评定客观评价</span></div>
         <div class="role-toggle" id="roleToggle">
             <button id="btnStudentMode" class="active" onclick="switchRole('student')">🧑‍🎓 学生端</button>
             <button id="btnTeacherMode" onclick="switchRole('teacher')">👩‍🏫 教师端</button>
