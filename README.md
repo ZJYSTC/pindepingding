@@ -150,8 +150,8 @@
 
 <script>
 // ==================== Supabase 配置（请替换为您自己的值） ====================
-const SUPABASE_URL = 'https://xbaztpbiedtwopvxzeczg.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_CcehX-9sXNrvvcI6Mt1ag_Hg8Jw...'; // 替换为您的实际anon key
+const SUPABASE_URL = 'https://xbaztpbeidtwopvxzezg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CcehX-9SXNnrvccI6Mt1ag_Hg8Jwoh_'; // 替换为您的实际anon key
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const CLASS_DATA = [
