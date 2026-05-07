@@ -1,4 +1,3 @@
-# pindepingding.hithub.io
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
