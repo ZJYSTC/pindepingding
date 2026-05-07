@@ -513,8 +513,8 @@
         </button>
         <div class="title-text">檀雅书院 · <span>品德评定</span></div>
         <div class="role-toggle" id="roleToggle">
-            <button id="btnStudentMode" class="active" onclick="switchRole('student')">🧑‍🎓 学生端</button>
-            <button id="btnTeacherMode" onclick="switchRole('teacher')">👩‍🏫 教师端</button>
+            <button id="btnStudentMode" class="active" onclick="switchRole('student')">学生端</button>
+            <button id="btnTeacherMode" onclick="switchRole('teacher')">教师端</button>
         </div>
         <button class="btn-icon" onclick="exportAllData()" title="导出全部">📤</button>
         <button class="btn-icon" onclick="document.getElementById('importFileInput').click()" title="导入">📥</button>
