@@ -2,7 +2,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>檀雅书院学生品德评定客观评价系统</title>
     <style>
         :root {
             --primary: #1a5276;
