@@ -150,8 +150,8 @@
 
 <script>
     // ==================== 请替换为您自己的 Supabase 配置 ====================
-    const SUPABASE_URL = 'https://your-project-id.supabase.co';
-    const SUPABASE_ANON_KEY = 'your-anon-key';
+    const SUPABASE_URL = 'https://xbaztpbeidtwopvxzezg.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_CcehX-9SXNnrvccI6Mt1ag_Hg8Jwoh_';
     // 创建 Supabase 客户端
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
