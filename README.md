@@ -254,7 +254,7 @@
 
         // --- 数据定义 ---
         const SUPABASE_URL = 'https://xbaztpbiedtwopvxzeczg.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_CcehX-9SXNnrvccI6Mt1ag_Hg8Jwoh_';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiYXp0cGJlaWR0d29wdnh6ZXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY0MTQsImV4cCI6MjA5MzczMjQxNH0.GYC5ivEwAJJBOdbCj1MjJaRG8vRKIAtNMg902FS2UZk';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const CLASS_DATA = [
