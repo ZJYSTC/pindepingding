@@ -104,14 +104,11 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // --- 1. 初始化 Supabase Client (使用全局 window.supabase 创建实例，并赋值给不同变量名) ---
+        // --- 1. 配置 ---
         const SUPABASE_URL = 'https://xbaztpbeidtwopvxzezg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_CcehX-9SXNnrvccI6Mt1ag_Hg8Jwoh_';
-   
-        // 修复点：使用全局的 window.supabase.createClient 创建实例，但将其赋值给一个新的变量 mySupabaseClient，避免命名冲突
-        const mySupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- 2. 数据定义 ---
         const CLASS_DATA = [
             { id:'A1-1', name:'A1栋1班', students:['赵玉芳','郎雯','唐佳佳','钱宇晨','代畅远','黎儒香','程菲','谭亚青','何广晴','胡悦','李慧源','赖玉婷','林岑','寇正清','林小甜','蒲云欣','李韵韵','陈关珊','黄林婷','韦佳','陈彦西','甘晓雪','吴靖怡','张愉琴','唐秋彤','王思琪','唐林洁','苏心雨','唐诗雅','孙荣璟'] },
             { id:'A1-2', name:'A1栋2班', students:['谈梓妍','王乐','谢柔音','熊以琳','席晓春','徐迦南','薛惠文','梁耀文','李赛文','李一鸣','王克英','顿成慧','李梦蕾','黄淑君','管欣蓉','邱湘','武婧','张霄佳','杨红','苏云峰','邓国芳','赵益涵','李德巧','丛嘉乐','陈艳艳','卓恒忆'] },
@@ -150,46 +147,18 @@
         ];
 
         const PASSWORD = '3105105';
-        let role = 'student', classId = CLASS_DATA[0].id, student = null; // 默认第一个班级
+        let role = 'student', classId = CLASS_DATA[0].id, student = null;
         let flipCat = null, flipIdx = 0, flipTotal = 0;
         let allStudentData = {};
 
-        // --- 3. 核心逻辑函数 (使用新的变量名 mySupabaseClient) ---
-        async function loadAllData() {
-            // 修复点：使用新的变量名 mySupabaseClient
-            const { data, error } = await mySupabaseClient.from('assessments').select('*');
-            if (error) {
-                console.error('加载数据错误:', error);
-                return {};
-            }
-            const result = {};
-            data.forEach(row => {
-                if (!result[row.student_name]) result[row.student_name] = {};
-                if (!result[row.student_name][row.cat_id]) result[row.student_name][row.cat_id] = {};
-                result[row.student_name][row.cat_id][row.sub_id] = { score: row.score, att: row.attachment, attName: row.attachment_name };
-                if (row.submitted) result[row.student_name].submitted = true;
-            });
-            allStudentData = result;
-            return result;
-        }
-
-        async function saveStudentData(name, catId, subId, score, att, attName, submitted) {
-            // 修复点：使用新的变量名 mySupabaseClient
-            const { error } = await mySupabaseClient.from('assessments').upsert({
-                student_name: name, cat_id: catId, sub_id: subId, score, attachment: att, attachment_name: attName, submitted
-            }, { onConflict: 'student_name, cat_id, sub_id' });
-            if (error) throw error;
-        }
-
-        async function updateSubmissionStatus(name, submitted) {
-            // 修复点：使用新的变量名 mySupabaseClient
-            const { error } = await mySupabaseClient.from('assessments').update({ submitted }).eq('student_name', name);
-            if (error) throw error;
-        }
-
+        // --- 2. 工具函数 ---
         function toast(msg, ok=true) {
-            const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+(ok?'success':'');
-            t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2000);
+            const t=document.getElementById('toast');
+            t.textContent=msg;
+            t.className='toast '+(ok?'success':'');
+            t.classList.add('show');
+            clearTimeout(t._t);
+            t._t=setTimeout(()=>t.classList.remove('show'),2000);
         }
 
         async function compress(file) {
@@ -219,24 +188,52 @@
             }
         }
 
-        async function submitForm(name) {
+        // --- 3. 数据操作函数 ---
+        async function loadAllData() {
             try {
-                const rec = allStudentData[name] || {};
-                for (let cat of ASSESSMENT_STRUCTURE) {
-                    for (let sub of cat.items) {
-                        const detail = rec[cat.id]?.[sub.id] || {};
-                        await saveStudentData(name, cat.id, sub.id, detail.score ?? sub.def, detail.att || null, detail.attName || null, true);
-                    }
-                }
-                await updateSubmissionStatus(name, true);
-                allStudentData[name].submitted = true;
-                toast('提交成功！');
-                setTimeout(() => goBack(), 1000);
-            } catch(e) {
-                toast('提交失败，请检查网络', false);
+                const { data, error } = await supabaseClient.from('assessments').select('*');
+                if (error) throw error;
+
+                const result = {};
+                data.forEach(row => {
+                    if (!result[row.student_name]) result[row.student_name] = {};
+                    if (!result[row.student_name][row.cat_id]) result[row.student_name][row.cat_id] = {};
+                    result[row.student_name][row.cat_id][row.sub_id] = { score: row.score, att: row.attachment, attName: row.attachment_name };
+                    if (row.submitted) result[row.student_name].submitted = true;
+                });
+                allStudentData = result;
+                return result;
+            } catch (err) {
+                console.error('加载数据错误:', err);
+                toast('加载数据失败: ' + err.message, false);
             }
         }
 
+        async function saveStudentData(name, catId, subId, score, att, attName, submitted) {
+            try {
+                const { error } = await supabaseClient.from('assessments').upsert({
+                    student_name: name, cat_id: catId, sub_id: subId, score, attachment: att, attachment_name: attName, submitted
+                }, { onConflict: 'student_name, cat_id, sub_id' });
+                if (error) throw error;
+            } catch (err) {
+                console.error('保存数据错误:', err);
+                toast('保存数据失败: ' + err.message, false);
+                throw err; // Re-throw to be caught by submitForm
+            }
+        }
+
+        async function updateSubmissionStatus(name, submitted) {
+            try {
+                const { error } = await supabaseClient.from('assessments').update({ submitted }).eq('student_name', name);
+                if (error) throw error;
+            } catch (err) {
+                console.error('更新提交状态错误:', err);
+                toast('更新状态失败: ' + err.message, false);
+                throw err; // Re-throw to be caught by submitForm
+            }
+        }
+
+        // --- 4. 渲染函数 ---
         function renderForm(name) {
             const rec = allStudentData[name] || {};
             const className = CLASS_DATA.find(c => c.id === classId)?.name || '未知班级';
@@ -320,22 +317,180 @@
             </div>`;
         }
 
-        function updateFlip(dur = 0) {
-            const t = document.getElementById('flipTrack');
-            t.style.transition = dur ? `transform ${dur}ms` : 'none';
-            t.style.transform = `translateY(-${flipIdx * 100}%)`;
-            document.getElementById('flipArrowUp').disabled = flipIdx <= 0;
-            document.getElementById('flipArrowDown').disabled = flipIdx >= flipTotal - 1;
-        }
-        
-        function keyFlip(e) {
-            if(!document.getElementById('flipView').classList.contains('active')) return;
-            if(e.key === 'ArrowDown' || e.key === 'PageDown'){ e.preventDefault(); flipPage(1); }
-            if(e.key === 'ArrowUp' || e.key === 'PageUp'){ e.preventDefault(); flipPage(-1); }
-            if(e.key === 'Escape') closeFlipView();
-        }
-        
-        function closeFlip() { document.getElementById('flipView').classList.remove('active'); }
+        // --- 5. 全局函数 (这些是 HTML 中 onclick 调用的) ---
+        window.toggleClassMenu = () => {
+            const o=document.getElementById('classMenuOverlay');
+            o.classList.toggle('open');
+            if(o.classList.contains('open')) {
+                document.getElementById('classMenuPanel').innerHTML = CLASS_DATA.map(c=>`
+                    <div class="class-menu-item ${c.id===classId?'current':''}" onclick="switchClass('${c.id}')">📌 ${c.name}</div>
+                `).join('');
+            }
+        };
+
+        window.closeClassMenu = e => {
+            if(e.target===document.getElementById('classMenuOverlay'))
+                document.getElementById('classMenuOverlay').classList.remove('open');
+        };
+
+        window.switchClass = id => {
+            if(CLASS_DATA.some(c => c.id === id)) {
+                classId = id;
+                document.getElementById('classMenuOverlay').classList.remove('open');
+                student = null;
+                closeFlip();
+                renderClass();
+            } else {
+                console.error(`Invalid class ID: ${id}`);
+                toast('无效的班级ID', false);
+            }
+        };
+
+        window.switchRole = r => {
+            if(r==='teacher' && role!=='teacher' && !window._auth) {
+                document.getElementById('passwordModalOverlay').classList.add('open');
+                return;
+            }
+            role=r; window._auth=false;
+            document.getElementById('btnStudentMode').classList.toggle('active', r==='student');
+            document.getElementById('btnTeacherMode').classList.toggle('active', r==='teacher');
+            student=null; closeFlip(); renderClass();
+        };
+
+        window.verifyPassword = () => {
+            if(document.getElementById('passwordInput').value===PASSWORD) {
+                document.getElementById('passwordModalOverlay').classList.remove('open');
+                window._auth=true; switchRole('teacher');
+            } else document.getElementById('passwordError').style.display='block';
+        };
+
+        window.closePasswordModal = () => document.getElementById('passwordModalOverlay').classList.remove('open');
+
+        window.openStudent = name => {
+            student=name;
+            if(role==='student') renderForm(name);
+            else {
+                const d = allStudentData[name];
+                if(!d||!d.submitted) document.getElementById('mainContainer').innerHTML=`<div style="max-width:700px;margin:40px auto;"><button onclick="goBack()">← 返回</button><h2>${name}</h2><p style="color:red;">该生尚未提交</p></div>`;
+                else renderTeacher(name);
+            }
+        };
+
+        window.toggleCat = id => document.getElementById('form-cat-'+id)?.classList.toggle('open');
+
+        window.onScore = (n,cid,sid,v,max,neg) => {
+            let val=parseFloat(v); if(isNaN(val)) val=0;
+            if(!neg && val<0) val=0; if(val>max) val=max;
+            if(!allStudentData[n]) allStudentData[n]={};
+            if(!allStudentData[n][cid]) allStudentData[n][cid]={};
+            if(!allStudentData[n][cid][sid]) allStudentData[n][cid][sid]={};
+            allStudentData[n][cid][sid].score = val;
+        };
+
+        window.triggerUpload = (subId) => {
+            const input = document.getElementById('file-'+subId);
+            if(input) input.click();
+        };
+
+        window.handleUpload = async (n,cid,sid,input) => {
+            const f=input.files[0]; if(!f) return;
+            if(!f.type.startsWith('image/')){ toast('请上传图片'); return; }
+            const b64 = await compress(f);
+            if(!allStudentData[n]) allStudentData[n]={};
+            if(!allStudentData[n][cid]) allStudentData[n][cid]={};
+            if(!allStudentData[n][cid][sid]) allStudentData[n][cid][sid]={};
+            allStudentData[n][cid][sid].att = b64;
+            allStudentData[n][cid][sid].attName = f.name;
+            toast('附件已上传');
+            renderForm(n);
+        };
+
+        window.delAtt = (n,cid,sid) => {
+            if(confirm('删除附件？')) {
+                if(allStudentData[n] && allStudentData[n][cid] && allStudentData[n][cid][sid]) {
+                    allStudentData[n][cid][sid].att = null;
+                    allStudentData[n][cid][sid].attName = null;
+                }
+                renderForm(n);
+            }
+        };
+
+        window.goBack = () => { student=null; closeFlip(); renderClass(); };
+
+        window.openFlip = (name,catId) => {
+            const data = allStudentData[name];
+            if(!data?.submitted) return;
+            const cat = ASSESSMENT_STRUCTURE.find(c => c.id === catId);
+            if(cat) {
+                flipCat = catId; flipIdx = 0; flipTotal = cat.items.length;
+                document.getElementById('flipTitle').textContent = cat.title;
+                document.getElementById('flipView').classList.add('active');
+                document.getElementById('flipTrack').innerHTML = cat.items.map((s,i)=>{
+                    const d = data[catId]?.[s.id];
+                    return `<div class="flip-page">
+                        <div class="page-attachment-area">${d?.att?`<img src="${d.att}">`:'<div>暂无附件</div>'}</div>
+                        <div style="margin-top:20px;font-weight:700;">${s.name} ： ${d?.score??0}/${s.max}分</div>
+                        <div style="margin-top:10px;color:#999;">${i+1}/${flipTotal}</div>
+                    </div>`;
+                }).join('');
+                updateFlip(0);
+                document.getElementById('flipArrowUp').disabled = true;
+                document.getElementById('flipArrowDown').disabled = flipTotal <= 1;
+                document.addEventListener('keydown', keyFlip);
+            } else {
+                console.error(`Invalid category ID: ${catId}`);
+                toast('无效的分类ID', false);
+            }
+        };
+
+        window.flipPage = d => {
+            const n = flipIdx + d;
+            if(n < 0 || n >= flipTotal) return;
+            flipIdx = n;
+            updateFlip(300);
+        };
+
+        window.closeFlipView = () => {
+            document.getElementById('flipView').classList.remove('active');
+            document.removeEventListener('keydown', keyFlip);
+        };
+
+        window.toggleToc = () => {
+            const d = document.getElementById('tocDropdown');
+            d.style.display = d.style.display === 'block' ? 'none' : 'block';
+            if(d.style.display === 'block'){
+                const cat = ASSESSMENT_STRUCTURE.find(c => c.id === flipCat);
+                if(cat) {
+                    d.innerHTML = cat.items.map((s, i) => `<div style="padding:11px 18px;cursor:pointer;${i === flipIdx ? 'background:#eef4fb' : ''}" onclick="jumpFlip(${i})">${i+1}. ${s.name}</div>`).join('');
+                } else {
+                    d.innerHTML = '<div style="padding:11px 18px;">无法加载目录</div>';
+                }
+            }
+        };
+
+        window.jumpFlip = i => {
+            flipIdx = i;
+            updateFlip(300);
+            document.getElementById('tocDropdown').style.display = 'none';
+        };
+
+        window.submitForm = async (name) => {
+            try {
+                const rec = allStudentData[name] || {};
+                for (let cat of ASSESSMENT_STRUCTURE) {
+                    for (let sub of cat.items) {
+                        const detail = rec[cat.id]?.[sub.id] || {};
+                        await saveStudentData(name, cat.id, sub.id, detail.score ?? sub.def, detail.att || null, detail.attName || null, true);
+                    }
+                }
+                await updateSubmissionStatus(name, true);
+                allStudentData[name].submitted = true;
+                toast('提交成功！');
+                setTimeout(() => goBack(), 1000);
+            } catch(e) {
+                toast('提交失败，请检查网络', false);
+            }
+        };
 
         window.exportPDF = name => {
             const data = allStudentData[name];
@@ -363,7 +518,7 @@
             const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
             a.download='檀雅书院品德评定.json'; a.click(); toast('已导出');
         };
-        
+
         window.importAllData = async e => {
             const f=e.target.files[0]; if(!f)return;
             const reader=new FileReader();
@@ -389,169 +544,28 @@
             reader.readAsText(f);
         };
 
-        // 全局函数定义
-        window.toggleClassMenu = () => {
-            const o=document.getElementById('classMenuOverlay');
-            o.classList.toggle('open');
-            if(o.classList.contains('open')) {
-                document.getElementById('classMenuPanel').innerHTML = CLASS_DATA.map(c=>`
-                    <div class="class-menu-item ${c.id===classId?'current':''}" onclick="switchClass('${c.id}')">📌 ${c.name}</div>
-                `).join('');
-            }
-        };
-        
-        window.closeClassMenu = e => { 
-            if(e.target===document.getElementById('classMenuOverlay')) 
-                document.getElementById('classMenuOverlay').classList.remove('open'); 
-        };
-        
-        window.switchClass = id => {
-            if(CLASS_DATA.some(c => c.id === id)) {
-                classId = id;
-                document.getElementById('classMenuOverlay').classList.remove('open');
-                student = null;
-                closeFlip();
-                renderClass();
-            } else {
-                console.error(`Invalid class ID: ${id}`);
-                toast('无效的班级ID', false);
-            }
-        };
-        
-        window.switchRole = r => {
-            if(r==='teacher' && role!=='teacher' && !window._auth) {
-                document.getElementById('passwordModalOverlay').classList.add('open');
-                return;
-            }
-            role=r; window._auth=false;
-            document.getElementById('btnStudentMode').classList.toggle('active', r==='student');
-            document.getElementById('btnTeacherMode').classList.toggle('active', r==='teacher');
-            student=null; closeFlip(); renderClass();
-        };
-        
-        window.verifyPassword = () => {
-            if(document.getElementById('passwordInput').value===PASSWORD) {
-                document.getElementById('passwordModalOverlay').classList.remove('open');
-                window._auth=true; switchRole('teacher');
-            } else document.getElementById('passwordError').style.display='block';
-        };
-        
-        window.closePasswordModal = () => document.getElementById('passwordModalOverlay').classList.remove('open');
-        
-        window.openStudent = name => {
-            student=name;
-            if(role==='student') renderForm(name);
-            else {
-                const d = allStudentData[name];
-                if(!d||!d.submitted) document.getElementById('mainContainer').innerHTML=`<div style="max-width:700px;margin:40px auto;"><button onclick="goBack()">← 返回</button><h2>${name}</h2><p style="color:red;">该生尚未提交</p></div>`;
-                else renderTeacher(name);
-            }
-        };
-        
-        window.toggleCat = id => document.getElementById('form-cat-'+id)?.classList.toggle('open');
-        
-        window.onScore = (n,cid,sid,v,max,neg) => {
-            let val=parseFloat(v); if(isNaN(val)) val=0;
-            if(!neg && val<0) val=0; if(val>max) val=max;
-            if(!allStudentData[n]) allStudentData[n]={};
-            if(!allStudentData[n][cid]) allStudentData[n][cid]={};
-            if(!allStudentData[n][cid][sid]) allStudentData[n][cid][sid]={};
-            allStudentData[n][cid][sid].score = val;
-        };
-        
-        window.triggerUpload = (subId) => {
-            const input = document.getElementById('file-'+subId);
-            if(input) input.click();
-        };
-        
-        window.handleUpload = async (n,cid,sid,input) => {
-            const f=input.files[0]; if(!f) return;
-            if(!f.type.startsWith('image/')){ toast('请上传图片'); return; }
-            const b64 = await compress(f);
-            if(!allStudentData[n]) allStudentData[n]={};
-            if(!allStudentData[n][cid]) allStudentData[n][cid]={};
-            if(!allStudentData[n][cid][sid]) allStudentData[n][cid][sid]={};
-            allStudentData[n][cid][sid].att = b64;
-            allStudentData[n][cid][sid].attName = f.name;
-            toast('附件已上传');
-            renderForm(n);
-        };
-        
-        window.delAtt = (n,cid,sid) => {
-            if(confirm('删除附件？')) {
-                if(allStudentData[n] && allStudentData[n][cid] && allStudentData[n][cid][sid]) {
-                    allStudentData[n][cid][sid].att = null;
-                    allStudentData[n][cid][sid].attName = null;
-                }
-                renderForm(n);
-            }
-        };
-        
-        window.goBack = () => { student=null; closeFlip(); renderClass(); };
-        
-        window.openFlip = (name,catId) => {
-            const data = allStudentData[name];
-            if(!data?.submitted) return;
-            const cat = ASSESSMENT_STRUCTURE.find(c => c.id === catId);
-            if(cat) {
-                flipCat = catId; flipIdx = 0; flipTotal = cat.items.length;
-                document.getElementById('flipTitle').textContent = cat.title;
-                document.getElementById('flipView').classList.add('active');
-                document.getElementById('flipTrack').innerHTML = cat.items.map((s,i)=>{
-                    const d = data[catId]?.[s.id];
-                    return `<div class="flip-page">
-                        <div class="page-attachment-area">${d?.att?`<img src="${d.att}">`:'<div>暂无附件</div>'}</div>
-                        <div style="margin-top:20px;font-weight:700;">${s.name} ： ${d?.score??0}/${s.max}分</div>
-                        <div style="margin-top:10px;color:#999;">${i+1}/${flipTotal}</div>
-                    </div>`;
-                }).join('');
-                updateFlip(0);
-                document.getElementById('flipArrowUp').disabled = true;
-                document.getElementById('flipArrowDown').disabled = flipTotal <= 1;
-                document.addEventListener('keydown', keyFlip);
-            } else {
-                console.error(`Invalid category ID: ${catId}`);
-                toast('无效的分类ID', false);
-            }
-        };
-        
-        window.flipPage = d => { 
-            const n = flipIdx + d; 
-            if(n < 0 || n >= flipTotal) return; 
-            flipIdx = n; 
-            updateFlip(300); 
-        };
-        
-        window.closeFlipView = () => { 
-            document.getElementById('flipView').classList.remove('active'); 
-            document.removeEventListener('keydown', keyFlip); 
-        };
-        
-        window.toggleToc = () => {
-            const d = document.getElementById('tocDropdown');
-            d.style.display = d.style.display === 'block' ? 'none' : 'block';
-            if(d.style.display === 'block'){
-                const cat = ASSESSMENT_STRUCTURE.find(c => c.id === flipCat);
-                if(cat) {
-                    d.innerHTML = cat.items.map((s, i) => `<div style="padding:11px 18px;cursor:pointer;${i === flipIdx ? 'background:#eef4fb' : ''}" onclick="jumpFlip(${i})">${i+1}. ${s.name}</div>`).join('');
-                } else {
-                    d.innerHTML = '<div style="padding:11px 18px;">无法加载目录</div>';
-                }
-            }
-        };
-        
-        window.jumpFlip = i => { 
-            flipIdx = i; 
-            updateFlip(300); 
-            document.getElementById('tocDropdown').style.display = 'none'; 
-        };
+        function updateFlip(dur = 0) {
+            const t = document.getElementById('flipTrack');
+            t.style.transition = dur ? `transform ${dur}ms` : 'none';
+            t.style.transform = `translateY(-${flipIdx * 100}%)`;
+            document.getElementById('flipArrowUp').disabled = flipIdx <= 0;
+            document.getElementById('flipArrowDown').disabled = flipIdx >= flipTotal - 1;
+        }
 
-        // --- 初始化 ---
-        async function init() {
+        function keyFlip(e) {
+            if(!document.getElementById('flipView').classList.contains('active')) return;
+            if(e.key === 'ArrowDown' || e.key === 'PageDown'){ e.preventDefault(); flipPage(1); }
+            if(e.key === 'ArrowUp' || e.key === 'PageUp'){ e.preventDefault(); flipPage(-1); }
+            if(e.key === 'Escape') closeFlipView();
+        }
+
+        function closeFlip() { document.getElementById('flipView').classList.remove('active'); }
+
+        // --- 6. 初始化 ---
+        document.addEventListener('DOMContentLoaded', async () => {
             await loadAllData();
             renderClass();
-        }
-        init();
+        });
     </script>
 </body>
 </html>
