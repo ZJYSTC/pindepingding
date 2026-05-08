@@ -253,9 +253,10 @@
         };
 
         // --- 数据定义 ---
-        const SUPABASE_URL = 'https://xbaztpbiedtwopvxzeczg.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiYXp0cGJlaWR0d29wdnh6ZXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY0MTQsImV4cCI6MjA5MzczMjQxNH0.GYC5ivEwAJJBOdbCj1MjJaRG8vRKIAtNMg902FS2UZk';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        import { createClient } from '@supabase/supabase-js'
+        const supabaseUrl = 'https://xbaztpbiedtwopvxzeczg.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiYXp0cGJlaWR0d29wdnh6ZXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY0MTQsImV4cCI6MjA5MzczMjQxNH0.GYC5ivEwAJJBOdbCj1MjJaRG8vRKIAtNMg902FS2UZk';
+        export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         const CLASS_DATA = [
             { id:'A1-1', name:'A1栋1班', students:['赵玉芳','郎雯','唐佳佳','钱宇晨','代畅远','黎儒香','程菲','谭亚青','何广晴','胡悦','李慧源','赖玉婷','林岑','寇正清','林小甜','蒲云欣','李韵韵','陈关珊','黄林婷','韦佳','陈彦西','甘晓雪','吴靖怡','张愉琴','唐秋彤','王思琪','唐林洁','苏心雨','唐诗雅','孙荣璟'] },
