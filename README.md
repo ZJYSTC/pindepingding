@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -105,8 +106,8 @@
     <script>
         // --- 1. 初始化 Supabase Client (使用全局 window.supabase 创建实例，并赋值给不同变量名) ---
         const SUPABASE_URL = 'https://xbaztpbeidtwopvxzezg.supabase.co';
-        const SUPABASE_ANON_KEY = process.env.'sb_publishable_CcehX-9SXNnrvccI6Mt1ag_Hg8Jwoh_';
-        
+        const SUPABASE_ANON_KEY = 'sb_publishable_CcehX-9SXNnrvccI6Mt1ag_Hg8Jwoh_';
+   
         // 修复点：使用全局的 window.supabase.createClient 创建实例，但将其赋值给一个新的变量 mySupabaseClient，避免命名冲突
         const mySupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
